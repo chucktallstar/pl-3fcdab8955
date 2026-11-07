@@ -67,7 +67,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <div class="cols" id="cols"></div>
 <div class="ttl" id="ttl"></div><div id="wall"></div><div id="more"></div></main>
 <div id="vw" role="dialog" aria-modal="true" aria-label="Prompt detail"><div class="vt"><div class="vi"><button class="back" id="bk">← BACK<kbd>ESC</kbd></button><img id="vimg" alt=""><button class="ar l" id="pv" aria-label="Previous picture">‹</button><button class="ar r" id="nx" aria-label="Next picture">›</button></div>
-<div class="vp"><div class="ic"><button class="pl" id="fv"><span>♡</span> Save</button><button class="pl" id="sh">Share link</button><a class="pl" id="dl" target="_blank" rel="noopener">Open image</a></div>
+<div class="vp"><div class="ic"><button class="pl" id="fv"><span>♡</span> Save</button><a class="pl" id="dl" target="_blank" rel="noopener">Open image</a></div>
 <div class="row"><span>Collection</span><span><a id="vc"></a></span></div><div class="row"><span>Creator</span><span id="va"></span></div><div class="row"><span>Source</span><span id="vs"></span></div><hr>
 <div class="lab">Prompt</div><p class="pt" id="vpr"></p><div class="tags" id="vtg"></div><div id="vnw"></div>
 <div class="acts"><button class="pl w" id="cp">Copy prompt</button><button class="pl g" id="us">Use this prompt →</button></div></div>
@@ -104,16 +104,17 @@ const qc=document.createElement('button');qc.className='qc';qc.textContent='Copy
 function more(){const w=$('wall');cur.slice(shown,shown+40).forEach(d=>w.appendChild(tile(d)));shown=Math.min(cur.length,shown+40)}
 new IntersectionObserver(e=>{if(e[0].isIntersecting&&shown<cur.length)more()},{rootMargin:'1000px'}).observe($('more'));
 function fav(id){F.has(id)?F.delete(id):F.add(id);saveF();$('fc').textContent=F.size?'('+F.size+')':'';$('fv').classList.toggle('on',F.has(id))}
-function go(id){location.hash='/p/'+id}
+function setH(h){try{history.replaceState(null,'',location.pathname+location.search+(h?'#'+h:''))}catch(e){}route()}
+function go(id){setH('/p/'+id)}
 function open(id){const d=BYID[id];if(!d)return close();$('vw').classList.add('on');document.body.style.overflow='hidden';$('vw').scrollTop=0;
 $('vimg').src=d.i;$('vimg').alt=d.t;$('dl').href=d.i;$('fv').classList.toggle('on',F.has(id));
-const c=$('vc');c.textContent=d.st[0]||'Library';c.onclick=()=>{coll=d.st[0]||'';favView=false;$('q').value='';location.hash='';run()};
+const c=$('vc');c.textContent=d.st[0]||'Library';c.onclick=()=>{coll=d.st[0]||'';favView=false;$('q').value='';setH('');run()};
 $('va').textContent=d.a||'Unknown';$('vs').textContent=d.src;$('vpr').textContent=d.p;
 const tg=$('vtg');tg.innerHTML='';[d.s&&'seed '+d.s,d.g&&'guidance '+d.g].concat(d.th.slice(0,4)).filter(Boolean).forEach(x=>{const s=document.createElement('span');s.className='tg';s.textContent=x;tg.appendChild(s)});
 const nw=$('vnw');nw.innerHTML='';if(d.n){nw.innerHTML='<details class="ng"><summary>Show negative prompt</summary><p class="pt"></p></details>';nw.querySelector('p').textContent=d.n}
 $('cp').onclick=async()=>{await copy(d.p);toast('Prompt copied')};
 $('us').onclick=async()=>{try{if(parent!==window)parent.postMessage({type:'pl-use',prompt:d.p},'*')}catch(e){}await copy(d.p);toast('Copied. Paste it into your prompt.')};
-$('sh').onclick=async()=>{await copy(location.href);toast('Link copied')};$('fv').onclick=()=>fav(id);
+$('fv').onclick=()=>fav(id);
 const rg=$('rg');rg.innerHTML='';const same=ALL.filter(x=>x.id!==id&&x.st[0]&&x.st[0]===d.st[0]);const start=(parseInt(id.slice(0,4),36)||0)%Math.max(1,same.length);
 (same.length?same.slice(start).concat(same.slice(0,start)):ALL).filter(x=>x.id!==id).slice(0,12).forEach(x=>rg.appendChild(tile(x)))}
 function step(n){const i=cur.findIndex(x=>x.id===(location.hash.match(/p\/(.+)$/)||[])[1]);if(i<0||!cur.length)return;go(cur[(i+n+cur.length)%cur.length].id)}
@@ -121,12 +122,12 @@ $('pv').onclick=()=>step(-1);$('nx').onclick=()=>step(1);
 function close(){$('vw').classList.remove('on');document.body.style.overflow=''}
 function route(){const m=location.hash.match(/^#\/p\/(.+)$/);m?open(m[1]):close()}
 addEventListener('hashchange',route);
-$('bk').onclick=()=>{history.length>1&&location.hash?history.back():(location.hash='')};
+$('bk').onclick=()=>setH('');
 addEventListener('keydown',e=>{if(!$('vw').classList.contains('on'))return;if(e.key==='Escape')$('bk').click();if(e.key==='ArrowLeft')step(-1);if(e.key==='ArrowRight')step(1)});
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(timer);timer=setTimeout(()=>t.classList.remove('on'),1600)}
 async function copy(x){try{await navigator.clipboard.writeText(x)}catch(e){const a=document.createElement('textarea');a.value=x;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}}
 $('sur').onclick=()=>go(ALL[Math.floor(Math.random()*ALL.length)].id);
 $('q').oninput=()=>{clearTimeout(window._d);window._d=setTimeout(run,160)};
-$('nAll').onclick=()=>{favView=false;run()};$('nFav').onclick=()=>{favView=true;coll='';run()};$('home').onclick=()=>{coll='';favView=false;$('q').value='';location.hash='';run();scrollTo(0,0)};
+$('nAll').onclick=()=>{favView=false;run()};$('nFav').onclick=()=>{favView=true;coll='';run()};$('home').onclick=()=>{coll='';favView=false;$('q').value='';setH('');run();scrollTo(0,0)};
 run();route();
 </script></html>
