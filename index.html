@@ -106,7 +106,7 @@ new IntersectionObserver(e=>{if(e[0].isIntersecting&&shown<cur.length)more()},{r
 function fav(id){F.has(id)?F.delete(id):F.add(id);saveF();$('fc').textContent=F.size?'('+F.size+')':'';$('fv').classList.toggle('on',F.has(id))}
 function setH(h){try{history.replaceState(null,'',location.pathname+location.search+(h?'#'+h:''))}catch(e){}route()}
 function go(id){setH('/p/'+id)}
-function open(id){const d=BYID[id];if(!d)return close();$('vw').classList.add('on');document.body.style.overflow='hidden';$('vw').scrollTop=0;
+function open(id){const d=BYID[id];if(!d)return close();if(window.__sy==null)window.__sy=window.scrollY;$('vw').classList.add('on');document.body.style.overflow='hidden';$('vw').scrollTop=0;
 $('vimg').src=d.i;$('vimg').alt=d.t;$('dl').href=d.i;$('fv').classList.toggle('on',F.has(id));
 const c=$('vc');c.textContent=d.st[0]||'Library';c.onclick=()=>{coll=d.st[0]||'';favView=false;$('q').value='';setH('');run()};
 $('va').textContent=d.a||'Unknown';$('vs').textContent=d.src;$('vpr').textContent=d.p;
@@ -119,7 +119,7 @@ const rg=$('rg');rg.innerHTML='';const same=ALL.filter(x=>x.id!==id&&x.st[0]&&x.
 (same.length?same.slice(start).concat(same.slice(0,start)):ALL).filter(x=>x.id!==id).slice(0,12).forEach(x=>rg.appendChild(tile(x)))}
 function step(n){const i=cur.findIndex(x=>x.id===(location.hash.match(/p\/(.+)$/)||[])[1]);if(i<0||!cur.length)return;go(cur[(i+n+cur.length)%cur.length].id)}
 $('pv').onclick=()=>step(-1);$('nx').onclick=()=>step(1);
-function close(){$('vw').classList.remove('on');document.body.style.overflow=''}
+function close(){const was=$('vw').classList.contains('on');$('vw').classList.remove('on');document.body.style.overflow='';if(was&&window.__sy!=null){const y=window.__sy;window.__sy=null;requestAnimationFrame(()=>scrollTo(0,y))}else window.__sy=null}
 function route(){const m=location.hash.match(/^#\/p\/(.+)$/);m?open(m[1]):close()}
 addEventListener('hashchange',route);
 $('bk').onclick=()=>setH('');
